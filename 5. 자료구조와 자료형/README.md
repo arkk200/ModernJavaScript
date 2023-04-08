@@ -557,4 +557,357 @@ function getMaxSubSum(arr) {
 해답:
 ![](./images/18.png)
 
+## 5.5 배열과 메서드
+
+### .splice()
+
+.splice() 메서드는 실행만으로 배열의 형태를 바꾼다.<br>
+.splice() 메서드의 인자는 다음과 같다.<br>
+`.splice(index[, deleteCount, elem1, elem2])`
+
+index는 삭제할 요소들 중 첫번째 요소의 인덱스, deleteCount는 삭제할 개수, 세번째 인자부터 index에 추가할 요소들이 들어간다.<br>
+이때 인덱스 인자, index에는 음수가 들어올 수 있다.<br>
+이 외에도 .slice(), .indexOf()와 같이 인덱스를 사용하는 메서드는 음수 인덱스를 사용할 수 있다.
+
+### .concat()
+
+.concat() 메서드는 실행만으로 배열의 형태를 바꿀 수 없다.<br>
+.concat() 메서드는 배열 뒤쪽에 요소를 합칠 때 사용하는데, 이때 인자로는 배열 또는 요소가 들어올 수 있다.
+
+```js
+let arr = [1, 2, 3];
+
+alert(arr.concat([4, 5], 6, 7, 8)); // 1,2,3,4,5,6,7,8
+```
+
+### .indexOf(), .lastIndexOf(), .includes()
+
+세 메서드 모두 인자는 다음 형태를 띈다.<br>
+indexOf | lastIndexOf | includes(item, from)<br>
+이때 .indexOf()와 .lastIndexOf()는 배열 내 요소를 찾을 때 일치연산자 `===` 을 사용하기에 NaN을 찾을 수 없지만 .includes()는 NaN을 감지할 수 있다.
+
+### .find(), .findIndex()
+
+.find(), .findIndex()는 인자로 함수가 들어오는데, 이 함수가 반환하는 값이 true라면 탐색을 멈추고 해당 요소나 인덱스를 반환한다.
+
+```js
+let fruits = {
+  { name: "orange", color: "orange" },
+  { name: "apple", color: "red" },
+  { name: "lemon", color: "yellow" }
+};
+
+let redFruit = fruits.find(item => item.color === "red");
+
+let redFruitIndex = fruits.find(item => item.color === "red");
+
+alert(redFruit.name); // apple
+alert(redFruitIndex); // 1
+```
+
+### .sort()
+
+.sort() 메서드는 실행만으로 배열의 형태를 변형시킨다.<br>
+.sort() 메서드는 그냥 쓰면 오름차순 정렬이 되는데 추가로 배열 인자로 배열을 정렬하는 함수를 넣을 수 있다.<br>
+주의할 점은 숫자 배열에 그냥 .sort() 메서드를 실행시키면 배열 내 요소들을 "문자열"로 변환한 후 정렬하기 때문에 다음과 같은 오류가 발생한다.
+
+```js
+let arr = [2, 1, 15];
+
+arr.sort();
+
+alert(arr); // 1,15,2
+```
+
+때문에 숫자 배열을 정렬시킬 대는 따로 인자에 함수를 넣어줘야한다.<br>
+이때 인자에 들어가는 함수는 다음과 같이 사용한다.
+
+```js
+function compare(a, b) {
+  return a - b;
+}
+```
+
+이 함수엔 비교할 요소 2개가 인자로 들어오는데, 첫번째 인자가 두번째 인자보다 클 때 양수를, 같을 때는 0을, 작을 때 음수를 반환시키면 올므차순 정렬이 된다.
+
+```js
+let arr = [2, 1, 15];
+
+arr.sort((a, b) => a - b);
+
+alert(arr); // 1,2,15
+```
+
+문자열을 정환하게 비교할 때는 .localCompare() 메서드를 사용하면 좋다. 유니코드를 기준으로 글자를 비교하기에 정확하다.
+
+```js
+let names = ["Ben", "Özmen", "Vance"];
+alert(names.sort((a, b) => (a > b ? 1 : -1))); // Ben,Vance,Özmen 제대로 정렬이 되지 않음
+
+alert(names.sort((a, b) => a.localeCompare(b))); // Ben,Özmen,Vance 제대로 정렬됨
+```
+
+### .reverse()
+
+.reverse()도 실행만으로 배열의 형태를 변형시키는 메서드이다.
+
+배열의 요소를 역순으로 정렬시키는 메서드이다.
+
+```js
+let arr = [1, 3, 2];
+
+arr.reverse();
+
+alert(arr); //2,3,1
+```
+
+### .split()
+
+만약 문자열을 하나씩 나눠 배열로 만들고 싶다면 다음처럼 인자로 빈 문자열을 주면 된다.
+
+```js
+let str = "adsf";
+
+alert(str.split("")); // a,s,d,f
+```
+
+### Array.isArray()
+
+배열도 객체이기 때문에 typeof로 배열을 출력해보면 object라고 뜬다.
+
+```js
+alert(typeof {}); // object
+alert(typeof []); // object
+```
+
+Array.isArray()를 쓰면 인자의 값이 배열인지 확인할 수 있다.
+
+### 함수를 인자로 하는 배열 메서드의 'thisArg'
+
+thisArg는 함수를 인자로 하는 배열 메서드(.sort() 제외)는 두번째 인자로 thisArg라는 인자를 옵션으로 받을 수 있다.<br>
+이 인자는 첫번째 인자의 함수 내의 this가 된다.
+
+```js
+let requirement = {
+  minHeight: 150,
+  maxHeight: 190,
+  isPossible(user) {
+    return user.height >= this.minHeight && user.height <= this.maxHeight;
+  },
+};
+
+let users = [
+  { name: "Amy", height: 148 },
+  { name: "Ben", height: 183 },
+  { name: "Charles", height: 163 },
+  { name: "David", height: 192 },
+];
+
+let possibleUsers = users.filter(requirement.isPossible, requirement);
+
+alert(possibleUsers.map((user) => user.name)); // Ben,Charles
+```
+
+`users.filter(user => requirement.isPossible(user))` 처럼 사용할 수도 있지만 thisArg를 사용하는 방식이 좀 더 이해하기 쉬워 더 자주 사용된다.
+
+### 5.5 과제
+
+1. border-left-width를 borderLeftWidth로 변경하기
+   ![](./images/19.png)
+
+```js
+function camelize(str) {
+  str = str.split("-");
+  return str.reduce(
+    (camelStr, curStr) => camelStr + curStr[0].toUpperCase() + curStr.slice(1)
+  );
+}
+```
+
+2. 특정 범위에 속하는 요소 찾기
+   ![](./images/20.png);
+
+```js
+function filterRange(arr, min, max) {
+  return arr.filter((num) => num >= min && num <= max);
+}
+```
+
+3. 특정 범위에 속하는 요소 찾기(배열 변경하기)
+   ![](./images/21.png);
+
+```js
+function filterRangeInPlace(arr, min, max) {
+  for (let i = 0; i < arr.length; i++) {
+    if (!(arr[i] >= min && arr[i] <= max)) {
+      arr.splice(i, 1);
+    }
+  }
+}
+```
+
+4 내림차순으로 정렬하기
+
+```js
+let arr = [5, 2, 1, -10, 8];
+
+// 요소를 내림차순으로 정렬해주는 코드를 여기에 작성해보세요.
+arr.sort((a, b) => b - a);
+
+alert(arr); // 8, 5, 2, 1, -10
+```
+
+5. 배열 복사본을 정렬하기
+   ![](./images/22.png);
+
+```js
+function copySorted(arr) {
+  arr = [...arr];
+  arr.sort((a, b) => a.localeCompare(b));
+  return arr;
+}
+```
+
+6. 확장 가능한 계산기
+   ![](./images/23.png)
+
+```js
+// 첫번째 단게
+function Calculator() {
+  this.calculate = function (exp) {
+    exp = exp.split(" ");
+    switch (exp[1]) {
+      case "+":
+        return +exp[0] + +exp[2];
+      case "-":
+        return +exp[0] - +exp[2];
+    }
+  };
+}
+```
+
+```js
+// 두번째 단계
+function Calculator() {
+  this.methods = {
+    "+": (a, b) => a + b,
+    "-": (a, b) => a - b,
+  };
+  this.calculate = function (exp) {
+    exp = exp.split(" ");
+    const sign = exp[1];
+
+    if (sign in methods) return this.methods[sign](+exp[0], +exp[2]);
+  };
+
+  this.addMethod = function (sign, method) {
+    this.methods[sign] = method;
+  };
+}
+```
+
+7. 이름 매핑하기
+   ![](./images/24.png)
+
+```js
+let john = { name: "John", age: 25 };
+let pete = { name: "Pete", age: 30 };
+let mary = { name: "Mary", age: 28 };
+
+let users = [john, pete, mary];
+
+let names = users.map((user) => user.name);
+
+alert(names); // John, Pete, Mary
+```
+
+8. 객체 매핑하기
+   ![](./images/25.png)
+
+```js
+let john = { name: "John", surname: "Smith", id: 1 };
+let pete = { name: "Pete", surname: "Hunt", id: 2 };
+let mary = { name: "Mary", surname: "Key", id: 3 };
+
+let users = [john, pete, mary];
+
+let usersMapped = users.map((user) => ({
+  fullName: `${user.name} ${user.surname}`,
+  id: user.id,
+}));
+
+/*
+usersMapped = [
+  { fullName: "John Smith", id: 1 },
+  { fullName: "Pete Hunt", id: 2 },
+  { fullName: "Mary Key", id: 3 }
+]
+*/
+
+alert(usersMapped[0].id); // 1
+alert(usersMapped[0].fullName); // John Smith
+```
+
+9. 나이를 기준으로 객체 정렬하기
+   ![](./images/26.png)
+
+```js
+function sortByAge(arr) {
+  arr.sort((a, b) => a.age - b.age);
+}
+```
+
+10. 배열 요소 무작위로 섞기
+
+```js
+function shuffle(arr) {
+  arr.sort(() => Math.random() - 0.5);
+}
+```
+
+11. 평균 나이 구하기
+    ![](./images/27.png)
+
+```js
+function getAverageAge(arr) {
+  let sum = arr.reduce((acc, cur) => acc + cur.age, 0);
+  return sum / arr.length;
+}
+```
+
+12. 중복 없는 요소 찾아내기
+    ![](./images/28.png)
+
+```js
+function unique(arr) {
+  return Array.from(new Set(arr));
+}
+
+let strings = [
+  "Hare",
+  "Krishna",
+  "Hare",
+  "Krishna",
+  "Krishna",
+  "Krishna",
+  "Hare",
+  "Hare",
+  ":-O",
+];
+
+alert(unique(strings)); // Hare, Krishna, :-O
+```
+
+13. Create keyed object from array
+    ![](./images/29.png)
+
+```js
+function groupById(arr) {
+  return arr.reduce((obj, cur) => {
+    obj[cur.id] = cur;
+    return obj;
+  }, {});
+}
+```
+
 잘못된 부분이 있으면 알려주세요😁
