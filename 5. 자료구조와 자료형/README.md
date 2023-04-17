@@ -910,4 +910,177 @@ function groupById(arr) {
 }
 ```
 
+## 5.6 iterable 객체
+
+for..of 반복문을 적용할 수 있는 반복 가능한 객체를 iterable 객체라고 한다.
+
+배열은 대표적인 iterable 객체이다. 문자열도 iterable의 예이며, 어떤 것들의 컬렉션(목록, 집합 등)이든 for..of 문법을 적용할 수만 있다면 iterable 객체이다.
+
+### Symbol.iterator
+
+일박전인 객체를 반복가능한 iterable 객체로 만드려면 Symbol.iterator라는 메서드를 추가해 만들 수 있다.
+
+```js
+let range = {
+  to: 1,
+  from: 5,
+};
+
+range[Symbol.iterator] = function () {
+  return {
+    current: this.from,
+    last: this.to,
+
+    next() {
+      if (this.current <= this.last) {
+        return { done: false, value: this.current++ };
+      } else {
+        return { done: true };
+      }
+    },
+  };
+};
+
+for (let num of range) {
+  alert(num);
+}
+```
+
+이때 위 코드에서 range 객체를 for..of로 돌렸을 때 동작 과정은 다음과 같다.
+
+1. for..of는 시작되자마자 Symbol.iterator를 호출한다(Symbol.iterator가 없으면 에러가 발생함). 여기서 Symbol.iterator는 반드시 이터레이터(next() 메서드가 있는 객체)를 반환해야 한다.
+2. 이후 for..of는 반환된 객체(이터레이터)를 대상으로 동작한다.
+3. for..of에 다음 값이 필요하면 for..of는 이터레이터의 next() 메서드를 호출한다.
+4. next()의 반환값은 { done: Boolean, value: any }와 같은 형태이어야 한다. done이 true일 때는 반복이 종료되었음을 의미한다. done=false 일땐 value에 다음 값이 저장된다.
+
+다음처럼 이터레이터 객체와 반복 대상 객체를 합쳐서 range 자체를 이터레이터로 만들면 코드가 더 간단해진다.
+
+```js
+let range = {
+  from: 1,
+  to: 5,
+  [Symbol.iterator]() {
+    this.current = this.from;
+    return this;
+  },
+  next() {
+    if (this.current <= this.to) {
+      return { done: false, value: this.current++ };
+    } else {
+      return { done: true };
+    }
+  },
+};
+```
+
+### 문자열은 이터러블
+
+배열과 마찬가지로 문자열도 광범위하게 쓰이는 내장 이터러블이다.
+
+for..of는 문자열의 각 글자를 순회한다.
+
+```js
+for (let char of "asdf") {
+  alert(char); // a, s, d, f가 차례대로 출력됨
+}
+```
+
+서로게이트 쌍인 문자열에도 잘 동작한다.
+
+```js
+for (let char of "😀😃😄😁") {
+  alert(char); // 😀, 😃, 😄, 😁가 차례대로 출력됨
+}
+```
+
+### 이터레이터를 명시적으로 호출하기
+
+이터레이터를 다음처럼 명시적으로 호출할 수도 있다.
+
+```js
+let str = "Hello";
+
+let iterator = str[Symbol.iterator]();
+
+while (true) {
+  let result = iterator.next();
+  if (result.done) break;
+  alert(result.value); // H, e, l, l, o가 차례대로 출력됨
+}
+```
+
+이터레이터를 명시적으로 호출하는 경우는 거의 없는데,<br>
+위처럼 하면 반복 과정을 더 잘 통제할 수 있어<br>
+반복을 시작하다가 멈춰 다른 작업을 하다가 다시 반복을 시작하는 것과 같은 세부적인 작업을 할 수 있다는 장점이 있다.
+
+### 유사 배열
+
+유사 배열은 인덱스와 length 프로퍼티가 있어 배열처럼 보이는 객체를 말한다.
+
+```js
+let fakeArray = {
+  0: "Hello",
+  1: "World",
+  length: 2,
+};
+```
+
+유사 배열은 배열이 아니기 때문에 push(), pop() 등의 메서드를 지원하지 않는다.
+
+### Array.from
+
+Array.from을 이용하면 이터러블이나 유사 배열을 받아 진짜 배열로 만들어준다.<br>
+그러면 push()나 pop() 등의 배열 메서드를 사용할 수 있어진다.
+
+```js
+let fakeArray = {
+  0: "Hello",
+  1: "World",
+  length: 2,
+};
+let realArray = Array.from(fakeArray);
+alert(realArray.pop()); // World (배열 메서드가 제대로 동작함)
+```
+
+위에 range 변수도 Array.from()으로 감싸면 진정한 배열 형태로 전환된다.
+
+Array.from()의 형태는 다음과 같다.
+
+```js
+Array.from(obj[, mapFn, thisArg])
+```
+
+두번째 인자의 mapFn에는 콜백함수가 오는데 각 요소를 대상으로 콜백함수의 반환값으로 바꿔줄 때 사용한다.<br>
+세번째 인자의 thisArg는 각 요소의 this를 지정할 수 있도록 해준다.
+
+```js
+let arr = Array.from(range, (num) => num * 2);
+alert(arr); // 2, 4, 6, 8, 10이 차례대로 출력됨
+```
+
+Array.from()은 str.split()과 달리, 문자열이 가진 이터러블 속성을 이용해 동작하기에 for..of처럼 서로게이트 쌍을 제대로 처리한다.
+
+```js
+let str = "😀😃";
+
+let arrStr = Array.from(str);
+for (let char of arrStr) {
+  alert(char); // 😀, 😃가 차례대로 잘 출력됨
+}
+```
+
+Array.from을 이용하면 서로게이트 쌍을 처리할 수 있는 slice 메서드도 구현할 수 있다.
+
+```js
+function slice(str, start, end) {
+  return Array.from(str).slice(start, end).join("");
+}
+
+let str = "😀😃😄";
+
+alert(slice(str, 1, 3)); // 😃😄
+// 순수 메서드는 서로게이트 쌍을 지원하지 않음
+alert(str.slice(1, 3)); // 쓰레깃값
+```
+
 잘못된 부분이 있으면 알려주세요😁
