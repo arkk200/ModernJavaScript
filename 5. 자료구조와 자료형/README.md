@@ -1341,3 +1341,197 @@ function aclean(arr) {
 // 5번째 라인을 아래처럼 고치면 된다.
 let keys = Array.from(map.keys());
 ```
+
+## 5.8 위크맵과 위크셋
+
+### 위크맵
+
+위크맵은 맵과 다르게 키가 반드시 객체여야 한다.<br>
+키로 원시값이 올 수 없다.
+
+```js
+let weakMap = new WeakMap();
+
+let obj = {};
+
+weakMap.set(obj, "ASDF");
+
+weakMap.set("ASDF", 1234); // TypeError: valid value used as weak map key
+```
+
+맵과의 또다른 차이점은 위크맵은 키로 사용된 객체를 참조하는 것이 아무 것도 없다면 해당 객체는 메모리에서 삭제된다는 것이다.
+
+```js
+let obj = {};
+let weakMap = new WeakMap();
+weakMap.set(obj, "ASDF");
+
+obj = null;
+
+// weakMap에서 obj를 키로 값이 메모리에서 삭제됨
+```
+
+그냥 맵으로 했을 경우엔 .keys() 메서드로 객체를 접근할 수 있기 때문에 메모리에서 삭제되지 않는다.<br>위크맵은 .keys() 메서드 포함 .value(), .entries() 메서드를 지원하지 않아 위 코드에서 접근할 방법이 없어 값이 삭제되는 것이다.
+
+위크맵이 지원하는 메서드는 다음과 같다.
+
+- `weakMap.get(key)`
+- `weakMap.set(key, value)`
+- `weakMap.delete(key)`
+- `weakMap.has(key)`
+
+### 활용 사례: 추가데이터
+
+만약 객체에 데이터를 추가해줘야 하는데, 이 객체가 살아있는 동아에만 유효한 상황이라고 한다면 이 때 위크맵을 사용할 수 있다.
+
+```js
+let john = {
+  age: 18,
+};
+
+let weakMap = new WeakMap();
+weakMap.set(john, "계정");
+
+john = null;
+// john이 사망할 경우, john의 계정은 사라져야한다.
+// weakMap에서 john을 접근할 방법이 없으니 john에 null이 들어왔을 때 값이 사라짐
+```
+
+만약 맵으로 위 코드를 구현한다면, 맵의 키를 통해 객체를 접근할 수 있어 삭제되지 않았을 것이다.
+
+```js
+let john = {
+  age: 18,
+};
+
+let map = new Map();
+map.set(john, "계정");
+
+john = null;
+
+// map.keys() 로 객체 키에 접근할 수 있기에 객체는 삭제되지 않는다.
+```
+
+### 활용 사례: 캐싱
+
+캐싱은 시간이 오래 걸리는 작업의 결과를 저장해두어 연산 시간과 비용을 아끼는 기법이다.<br>
+예를들어 아래처럼 객체를 연산하여 결과값을 반환하는 함수를 보면
+
+```js
+let cache = new WeakMap();
+
+function process(obj) {
+  if (!cache.has(obj)) {
+    let result = obj.first * obj.second;
+
+    cache.set(obj, result);
+  }
+
+  return cache.get(obj);
+}
+
+let obj = {
+  first: 7,
+  second: 8,
+};
+
+let result1 = process(obj); // obj를 키로 56이 cache에 저장됨
+
+let result2 = process(obj); // 두번째 연산에선 cache에 저장된 값을 가져옴
+
+obj = null; // 객체가 쓸모없어졌을 땐 null로 덮음
+
+alert(cache.size); // 0: cache가 weakMap으로 선언되어 값이 잘 삭제됨
+```
+
+### 위크셋
+
+위크셋도 위크맵과 비슷하게 객체만 저장할 수 있고 원시 값은 저장할 수 없다.<br>
+마찬가지로 셋 내의 객체들은 도달 가능할 때만 메모리에서 유지된다.<br>
+때문에 .add(), .has(), .delete()와 같은 메서드들만 사용할 수 있고, 값을 가지고 오거나 반복 작업을 할 수 있는 .keys()나 .size 같은 메서드, 프로퍼티들은 사용할 수 없다.
+
+```js
+let weakSet = new WeakSet();
+
+let james = { age: 18 };
+let jake = { age: 30 };
+let john = { age: 42 };
+
+weakSet.add(james);
+weakSet.add(jake);
+weakSet.add(john);
+weakSet.add(james); // 중복되니 들어가지 않음
+weakSet.add(jake); // 중복되니 들어가지 않음
+
+weakSet.has(james); // true
+
+james = null; // weakSet에서 james를 나타내는 객체가 자동으로 삭제됨
+```
+
+위크맵과 위크셋은 객체와 함께 추가 데이터를 저장하는 용도로 사용할 수 있다.
+
+### 5.8 과제
+
+1. '읽음'상태인 메시지 저장하기
+
+![](./images/33.png)
+
+위와 같은 상황에선 WeakMap 자료구조를 사용하여 메시지가 읽혔는지 판단할 수 있다. WeakMap 자료구조를 쓴다면 메시지가 삭제됐을 때 메시지의 읽힘 값이 저장되어 있는 자료구조에서 값이 자동으로 삭제되기에 이 상황에서 사용하기 좋다.
+
+해답
+
+```js
+let messages = [
+  { text: "Hello", from: "John" },
+  { text: "How goes?", from: "John" },
+  { text: "See you soon", from: "Alice" },
+];
+
+let readMessages = new WeakSet();
+
+// 메시지 두 개가 읽음 상태로 변경되었습니다.
+readMessages.add(messages[0]);
+readMessages.add(messages[1]);
+// readMessages엔 요소 두 개가 저장됩니다.
+
+// 첫 번째 메시지를 다시 읽어봅시다!
+readMessages.add(messages[0]);
+// readMessages에는 요소 두 개가 여전히 저장되어 있습니다(중복 요소 없음).
+
+// "'message[0]'은 읽음 상태인가요?"에 대한 답변
+alert("message 0은 읽음 상태인가요?: " + readMessages.has(messages[0])); // true
+
+messages.shift();
+// 이제 readMessages에는 요소가 하나만 남게 되었습니다(실제 메모리에서 사라지는 건 나중이 되겠지만 말이죠).
+```
+
+해답에선 읽은 메세지들은 readMessages WeakSet 객체에 담는 식으로 구현되어 있다.
+
+2. 읽은 날짜 저장하기
+
+![](././images/34.png)
+
+```js
+let messages = [
+  { text: "Hello", from: "John" },
+  { text: "How goes?", from: "John" },
+  { text: "See you soon", from: "Alice" },
+];
+
+let readMessages = new WeakMap();
+
+// 읽은 메세지들은 WeakMap 객체에 날짜와 함께 저장함
+readMessages.set(messages[0], new Date());
+readMessages.set(messages[1], new Date());
+
+// 읽은 메세지면 읽힌 날짜를 반환하고 안 읽었다면 undefined를 반환함
+function getReadDate(index) {
+  return readMessages.get(messages[index]);
+}
+
+alert(getReadDate(0)); // 날짜
+alert(getReadDate(2)); // undefined
+
+messages[0] = null; // 0번째 메시지 삭제
+alert(getReadDate(0)); // undefined
+```
