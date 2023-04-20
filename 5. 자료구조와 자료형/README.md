@@ -1535,3 +1535,63 @@ alert(getReadDate(2)); // undefined
 messages[0] = null; // 0번째 메시지 삭제
 alert(getReadDate(0)); // undefined
 ```
+
+## 5.9 Object.keys, values, entries
+
+keys(), values(), entries() 메서드를 사용할 수  있는 자료구조는 다음과 같다.
+- Map
+- Set
+- Array
+
+일반 객체에도 keys()나 values() 같은 순회 관련 메서드가 존재하지만 문법에 차이가 있다.
+
+### Object.keys, values, entries
+
+- `Object.keys(obj)` - 객체의 키만 담은 배열을 반환함
+- `Object.values(obj)` - 객체의 값만 듬은 배열을 반환함
+- `Object.entries(obj)` - `[키, 값]` 쌍을 담은 배열을 반환함
+
+맵은 기준으로 일반 객체의 순회 관련 메서드를 비교하면 다음과 같다
+
+| | 맵 | 객체 |
+| -- | -- | -- |
+| 호출 문법 | map.keys() | Object.keys(obj) |
+| 반환 값 | iterable 객체 | '진짜' 배열 |
+첫번째 차이는 일반 객체는 obj.keys()가 아닌 Object.keys(obj)로 호출해야한다는 점이다.
+
+이렇게 문법이 다른 이유는 유연성 때문이다. 자바스크립트에선 많은 복잡한 자료구조들이 객체에 기반한다.<br>
+그러다 보니 객체에 자체적으로 values()나 keys() 메서드가 구현되어 있는 경우가 있을 수 있기에 Object.values(obj)나 Object.keys(obj) 형태로 호출하게 한 것이다.
+
+두번째 차이는 Object.*는 이터러블 객체가 아닌 배열을 반환한다는 점이다.<br>
+배열을 반환하는 이유는 하위 호환성 때문이다.<br>
+이 메서드가 나올 당시엔 이터러블 객체가 없었기 때문이다.<br>
+배열로 반환한다면 배열 메서드를 바로 사용할 수 있기에 기능면에서도 유리하다.
+
+또 다른 차이점은 Object.keys(), Object.values(), Object.entries()는 심볼형 키를 무시한다.<br>
+심볼형 키를 연산 대상에 포함하는 건 좋지 않다.<br>
+만약 심볼형 키를 반환받고 싶다면 Object.getOwnPropertySymbols()를 사용해 심볼형 키만 가지고 올 수 있다.<br>
+만약 심볼형 키를 포함한 모든 키를 배열 형태로 받고 싶을 땐 Reflect.ownKeys(obj)를 사용하면 된다.
+
+### 5.9 과제
+1. 프로퍼티 값 더하기
+
+![](./images/35.png)
+
+```js
+function sumSalaries(salaries) {
+  return Object.values(salaries).reduce((sum, current) => sum + current, 0);
+}
+```
+
+2. 프로퍼티 개수 세기
+
+![](./images/36.png)
+
+```js
+function count(user) {
+  return Object.keys(user).length;
+}
+```
+
+
+잘못된 부분이 있으면 알려주세요😁
