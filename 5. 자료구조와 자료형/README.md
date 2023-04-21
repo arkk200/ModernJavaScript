@@ -1593,5 +1593,139 @@ function count(user) {
 }
 ```
 
+## 5.10 구조 분해 할당
+
+구조 분해 할당은 객체와 배열에서 값을 변수로 분해하여 할당할 때 사용할 수 있는 기능이다.<br>
+다음과 같이 사용핤 수 있다.
+```js
+let obj = {
+  name: "James",
+  age: 18
+};
+
+let fruits = ['apple', 'banana', 'cherry']
+
+const {name, age} = obj;
+const [apple, banana, cherry] = fruits;
+```
+
+### 구조 분해 할당 특징
+
+쉼표를 사용하면 요소를 무시할 수 있다.
+
+```js
+let fruits = ['apple', 'banana', 'cherry']
+
+const [apple, , cherry] = fruits; // banana가 무시됨
+alert(cherry); // cherry
+```
+
+할당 연산자의 오른쪽엔 모든 이터러블이 올 수 있다.
+
+```js
+const [apple, banana, cherry] = "abc"; // ["a", "b", "c"]
+
+const [date, eggfruit, fig] = new Set(["date", "eggfruite", "fig"]);
+```
+
+할당할 수 있으면 할당 연산자 좌측엔 뭐든지 올 수 있다.
+
+```js
+const user = {};
+[user.name, user.age] = ["James", 18]
+
+alert(user.name); // James
+alert(user.age); // 18
+```
+
+다음처럼 하면 한 줄로 변수끼리 값을 교환할 수도 있다.
+
+```js
+let user1 = "James";
+let usre2 = "Jake";
+
+[user1, user2] = [user2, user1];
+
+alert(user1); // Jake
+alert(user2); // James
+```
+
+할당하고자 하는 변수의 개수보다 분해하고자 하는 배열의 길이가 짧아도 에러가 발생하진 않는다.<br>
+대신 undefined가 변수에 할당된다.
+
+구조 분해 할당할 때 기본값을 줄 수 있다.
+```js
+const [name = "James", age=18] = ["Jake"];
+alert(name); // Jake
+alert(age); // 18
+```
+
+```js
+const {name = "John", age = 42} = {age: 30};
+alert(name); // John
+alert(age); // 30
+```
+
+이때 기본값을 어떤 함수의 반환값으로 받는다고 할 때 우측에 값이 제공되지 않았을 때만 함수가 실행된다.
+
+```js
+// "이름을 입력하세요."라는 프롬프트만 출력됨
+const [name = prompt("이름을 입력하세요."), age = prompt("나이를 입력하세요")] = [, 18];
+```
+
+위 상황은 객체를 분해했을 때도 마찬가지다.
+
+### 5.10 과제
+
+1. 구조 분해 할당
+
+![](./images/37.png)
+
+```js
+const { name, years: age, isAdmin = false } = user;
+```
+
+2. 최대 급여 계산하기
+
+![](./images/38.png)
+
+```js
+function topSalary(salaries) {
+  if (Object.keys(salaries).keys().length === 0) {
+    return null;
+  }
+
+  let max = 0;
+  let name;
+
+  Object.entries(salaries).forEach(([curName, salary]) => {
+    if (max < salary) {
+      max = salary;
+      name = curName;
+    }
+  });
+
+  return name;
+}
+```
+
+해답
+
+```js
+function topSalary(salaries) {
+
+  let max = 0;
+  let maxName = null;
+
+  for(const [name, salary] of Object.entries(salaries)) {
+    if (max < salary) {
+      max = salary;
+      maxName = name;
+    }
+  }
+
+  return maxName;
+}
+```
 
 잘못된 부분이 있으면 알려주세요😁
