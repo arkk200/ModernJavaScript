@@ -2018,4 +2018,246 @@ function formatDate(date) {
 }
 ```
 
+## 5.12 JSON과 메서드
+객체를 네트워크를 통해 어디론가 보낼때 객체를 문자열 형태로 변경해야 한다.<br>
+이때 자바스크릡트에 내장된 JSON을 사용하면 문자열로 변경하는 작업을 손쉽게 할 수 있다.
+
+자바스크립트가 제공하는 JSON 관련 메서드는 아래와 같다.
+- `JSON.stringify` 객체를 JSON으로 바꿔준다.
+- `JSON.parse` JSON을 객체로 바꿔준다.
+
+### JSON.stringify
+
+아래 객체에 JSON.stringify를 적용해보면
+
+```js
+let user = {
+  name: 'Jackson',
+  age: 19,
+  isFamous: true,
+  langs: ["JS", "Python", "Java", "C#", "Dart"],
+  child: null
+}
+
+const json = JSON.stringify(user);
+
+alert(typeof json); // string
+
+alert(json); // JSON 타입 데이터가 잘 출력됨
+```
+
+JSON에 들어올 수 있는 타입은 아래와 같다.
+- 객체
+- 배열
+- 원시형:
+  - 문자형
+  - 숫자형
+  - 불린형
+  - null
+
+이 외에 함수 프로퍼티나 심볼형 프로퍼티, 값이 undefined인 프로퍼티는 무시된다.
+
+```js
+let a = {
+  p1() {
+    alert("asdf");
+  },
+  [Symbol("id")]: "adsf",
+  asdf: undefined
+};
+alert(JSON.stringify(a)); // {}
+```
+
+또한 순환 참조가 있는 객체에 JSON.stringify를 사용하는 건 불가능하다.
+
+```js
+let a = {};
+let b = {};
+
+a.prop = b;
+b.prop = a;
+
+JSON.stringify(a); // TypeError: Converting circular structure to JSON
+```
+
+#### replacer로 원하는 프로퍼티만 직렬화하기
+JSON.stringify의 전체 문법은 아래와 같다.
+```js
+const json = JSON.stringify(value[, replacer, space]);
+```
+value는 인코딩하려는 값<br>
+replacer는 인코딩 하길 원하는 프로퍼티들의 배열 또는 매핑 함수 `function(key, value)`<br>
+space는 서식 변경으로 사용할 공백 문자 수를 의미한다.<br>
+대개의 경우 JSON.stringify 엔 하나의 인수만을 넣어 사용하지만<br>
+순환 참조같은 경우를 다룰 때는 정교하게 조정할 때는 두번째 인자를 사용해야 한다.
+
+```js
+let orders = {
+  users: [
+    { name: "James" },
+    { name: "John" }
+  ]
+};
+let books = {
+  books: [
+    {title: 'good adventure book'},
+    {title: 'nice horror book'}
+  ]
+};
+
+orders.books = books;
+books.orders = orders;
+
+alert(JSON.stringify(orders, ['users', 'books', 'name', 'title']));
+// {"users":[{"name":"James"},{"name":"John"}],"books":{"books":[{"title":"good adventure book"},{"title":"nice horror book"}]}}
+```
+
+위처럼 books 객체의 orders를 제외한 프로퍼티만을 배열에 넣어서 순환 참조 문제를 해결할 수 있다.<br>
+위 코드는 JSON.stringify의 두번째 인자에 함수를 넣으면 더 간단하게 할 수 있다.
+
+```js
+let orders = {
+  users: [
+    { name: "James" },
+    { name: "John" }
+  ]
+};
+let books = {
+  books: [
+    {title: 'good adventure book'},
+    {title: 'nice horror book'}
+  ]
+};
+
+orders.books = books;
+books.orders = orders;
+
+alert(JSON.stringify(orders, (key, value) => {
+  alert(`${key}: ${value}`);
+  return key === "orders" ? undefined : value;
+}));
+/*
+: [object Object]
+users: [object Object],[object Object]
+0: [object Object]
+name: James
+1: [object Object]
+name: John
+books: [object Object]
+books: [object Object],[object Object]
+0: [object Object]
+title: good adventure book
+1: [object Object]
+title: nice horror book
+orders: [object Object]
+*/
+```
+
+처음에 `: [object Object]` 가 출력되는 까닭은 함수가 최초로 호출될 때 `{"": orders}` 형태의 wrapper 객체가 만들어지기 때문이다.<br>
+위 코드에서 key가 orders인 프로퍼티는 value가 아닌 undefined를 반환하게 했으므로 순환 참조가 끊기게 된다.
+
+#### space로 가독성 높이기
+
+JSON.stringify()의 세번째 인수 space에는 가독성을 높이기 위한 공백 문자 수가 들어온다.
+
+```js
+let a = { b: ['asdf', 'qwer', 'xzcv' ] };
+```
+
+위 코드를 JSON.stringify로 번환하면 아래의 문자열이 나온다.
+
+```js
+alert(JSON.stringify(a)); // {"b":["asdf","qwer","xzcv"]}
+```
+
+이때 세번째 인자에 값을 넣으면 아래와 같이 출력된다.
+
+```js
+alert(JSON.stringify(a, null 2));
+/*
+{
+  "b": [
+    "asdf",
+    "qwer",
+    "xzcv"
+  ]
+}
+*/
+```
+
+세번째 인자에 2는 공백문자 2개씩 띄워서 출력해달라는 의미이다.
+
+### 커스텀 "toJSON"
+toJSON은 toString처럼 반환값을 인코딩될 값으로 정한다.<br>
+
+```js
+let a = {
+  toJSON() {
+    return {
+      name: "Jackson",
+      age: 19
+    }
+  }
+}
+alert(JSON.stringify(a)); // {"name":"Jackson","age":19}
+```
+
+### JSON.parse
+
+JSON.parse의 형식은 아래와 같다.
+
+```js
+let obj = JSON.parse(str[, reviver]);
+```
+
+str에는 JSON 형식의 문자열,<br>
+revivier에는 `function(key, value)` 형태의 함수가 들어온다.
+
+#### reviver 사용하기
+JSON.parse의 두번째 인자인 reviver는 JSON.stringify의 두번째 인자에 들어오는 `function(key, value)` 와 동일한 기능을 하는 함수가 들어온다.
+
+아래와 같은 datestring을 자바스크립트 Date 객체 값으로 바꾼다면 아래처럼 할 수 있다.
+```js
+let book = `{
+  "title": "goodBook",
+  "published": "2023-01-01T12:34:56.789Z"
+}`;
+
+let bookObj = JSON.parse(book, (key, value) => {
+  if (key === "published") return new Date(value);
+  return value;
+});
+
+alert(bookObj.published.getDate()); // date 객체로 잘 변환된 것을 확인할 수 있다.
+```
+
+### 5.12 과제
+
+1. 객체를 JSON으로 바꾼 후 다시 객체로 바꾸기
+
+![](./images/47.png)
+
+```js
+let user = {
+  name: "John Smith",
+  age: 35
+};
+
+let user2 = JSON.parse(JSON.stringify(user));
+```
+
+2. 역참조 배제하기
+
+![](./images/48.png)
+
+```js
+let cache = [];
+
+alert(JSON.stringify(meetup, function replacer(key, value) {
+  if (cache.includes(value)) return undefined;
+  cache.push(value);
+  return value;
+}));
+```
+
 잘못된 부분이 있으면 알려주세요😁
