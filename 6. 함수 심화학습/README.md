@@ -547,4 +547,209 @@ function makeArmy() {
 
 j는 while문 내에서 i값을 복사한 변수로 10개의 함수 표현식이 외부 렉시컬 환경의 i가 아닌 while문 내에 j를 가리키면 각각 다른 값이 출력되게 되므로 제대로 출력된다.
 
+## 6.6 객체로서의 함수와 기명 함수 표현식
+
+함수는 객체입니다.<br>
+호출이 가능한 행동 객체라고 이해하면 쉽습니다. 때문에 함수에 프로퍼티를 추가하거나 삭제, 참조를 통해 전달할 수 있습니다.
+
+### name 프로퍼티
+
+name 프로퍼티로 함수 이름을 가져올 수 있습니다.
+
+```js
+function foo() {}
+let baz = function () {};
+let fee = () => {};
+
+alert(foo.name);
+alert(baz.name);
+alert(fee.name);
+```
+
+위에서 익명함수도 이름을 가지고 올 수 있는데 자바스크립트 명세서에서 이 기능을 'contextual name'이라고 부릅니다.<br>
+익명 함수의 이름을 지정할 땐 컨텍스트에서 이름을 가지고 옵니다.
+
+그래도 객체 메서드 이름을 추론하는게 불가능한 상황이 있는데 이때는 name 프로퍼티에 빈 문자열이 저장됩니다.
+
+```js
+let arr = [function () {}];
+alert(arr[0].name); // ''
+// 엔진이 이름을 설정할 수 없어 빈 문자열을 저장함
+```
+
+### length 프로퍼티
+
+함수에서 length는 함수 매개변수의 개수를 반환합니다.
+
+```js
+function f1(a) {}
+function f2(a, b) {}
+function f2NOthers(a, b, ...more) {}
+
+alert(f1.length); // 1
+alert(f2.length); // 2
+alert(f2NOthers.length); // 2
+```
+
+이때 나머지 매개변수는 개수에 포함되지 않습니다.
+
+### 커스텀 프로퍼티
+
+아래처럼 커스텀 프로퍼티를 만들어서 함수 호출 횟수를 저장하는 프로퍼티를 만들 수 있습니다.
+
+```js
+function call() {
+  alert("호출됨");
+
+  call.counter++;
+}
+call.counter = 0;
+
+call();
+call();
+
+alert(`호출 횟수: ${call.counter}회`); // 호출 횟수: 2회
+```
+
+> 프로퍼티와 변수는 다릅니다.<br>
+> 함수내에 let counter와 call.counter는 전혀 관계가 없습니다.
+
+### 기명 함수 표현식
+
+기명 함수 표현식(Named Function Expression, NFE)은 이름이 있는 함수 표현식을 나타냅니다.
+
+일반적인 함수 표현식은 아래와 같습니다.
+
+```js
+let call = function (name) {
+  alert(`Hello, ${name}`);
+};
+```
+
+여기에 이름이 붙은게 기명 함수 표현식입니다.
+
+```js
+let call = function func(name) {
+  alert(`Hello, ${name}`);
+};
+```
+
+기명 함수 표현식을 사용하면 함수 표현식 내부에서 자기 자신을 참조할 수 있습니다.
+
+```js
+let call = function func(name) {
+  if (name) {
+    alert(`Hello, ${name}`);
+  } else {
+    func("Anonymous");
+  }
+};
+
+call(); // Hello, Anonymous
+```
+
+위 코드에서 함수 표현식 내에 call()을 넣는다면 아래 상황에서 에러가 발생합니다.
+
+```js
+let call = function (name) {
+  if (name) {
+    alert(`Hello, ${name}`);
+  } else {
+    call("Anonymous"); // TypeError: call is not a function
+  }
+};
+let greet = call;
+call = null;
+
+greet();
+```
+
+함수 표현식 내에 call이 없기 때문에 외부 렉시컬 환경에서 call을 찾는데, 함수가 호출되는 시점에서 call에는 null이 저장되어 있기 때문에 에러가 발생합니다.
+
+때문에 아래처럼 바꿔주면 문제를 해결할 수 있습니다.
+
+```js
+let call = function func(name) {
+  if (name) {
+    alert(`Hello, ${name}`);
+  } else {
+    func("Anonymous");
+  }
+};
+let greet = call;
+call = null;
+
+greet(); // Hello, Anonymous
+```
+
+### 6.6 과제
+
+1. 숫자 설정과 감소가 가능한 counter 만들기
+
+![](./images/15.png)
+
+```js
+function makeCounter() {
+  function counter() {
+    return ++counter.count;
+  }
+  counter.count = 0;
+  counter.set = (value) => {
+    counter.count = value;
+  };
+  counter.decrease = () => {
+    counter.count--;
+  };
+
+  return counter;
+}
+```
+
+2. 임의의 수만큼 있는 괄호를 이용해 합계 구하기
+
+![](./images/16.png)
+
+```js
+function sum(num) {
+  sum.num += num;
+  return sum;
+}
+sum.num = 0;
+sum[Symbol.toPrimitive] = () => {
+  let result = sum.num;
+  sum.num = 0;
+  return result;
+};
+
+console.log(sum(1)(2));
+console.log(sum(1)(2)(3));
+console.log(sum(5)(-1)(2));
+console.log(sum(6)(-1)(-2)(-3));
+console.log(sum(0)(1)(2)(3)(4)(5));
+```
+
+해답
+
+```js
+function sum(a) {
+  let currentSum = a;
+
+  function f(b) {
+    currentSum += b;
+    return f;
+  }
+
+  f.toString = function () {
+    return currentSum;
+  };
+
+  return f;
+}
+
+alert(sum(1)(2)); // 3
+alert(sum(5)(-1)(2)); // 6
+alert(sum(6)(-1)(-2)(-3)); // 0
+alert(sum(0)(1)(2)(3)(4)(5)); // 15
+```
+
 잘못된 부분이 있으면 알려주세요😁

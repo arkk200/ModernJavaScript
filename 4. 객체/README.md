@@ -873,11 +873,11 @@ let obj = {
   name: "James",
   age: 30,
   toString() {
-    return `{name: "${this.James}"};
+    return `{name: "${this.James}"}`;
   },
   valueOf() {
-	return this.age;
-  }
+    return this.age;
+  },
 };
 alert(obj); // toString(): {name: "James"}
 alert(+obj); // valueOf(): 30
