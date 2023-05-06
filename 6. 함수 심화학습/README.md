@@ -1,4 +1,5 @@
 ## 6.1 재귀와 스택
+
 재귀는 함수가 자기 자신을 호출하는 것을 의미합니다.
 
 예를 들어 1부터 n까지의 곱을 반환하는 함수 factorial(n)이 있다고 해봅시다.<br>
@@ -8,13 +9,13 @@
 
 ```js
 function factorial(n) {
-    let result = 1;
+  let result = 1;
 
-    for (let i = 2; i <= n; i++) {
-        result *= i;
-    }
+  for (let i = 2; i <= n; i++) {
+    result *= i;
+  }
 
-    return result;
+  return result;
 }
 
 alert(factorial(4)); // 24
@@ -24,22 +25,22 @@ alert(factorial(4)); // 24
 
 ```js
 function factorial(n) {
-    if (n == 1) {
-        return 1;
-    } else {
-        return n * factorial(n-1);
-    }
+  if (n == 1) {
+    return 1;
+  } else {
+    return n * factorial(n - 1);
+  }
 }
 
 alert(factorial(4)); // 24
 ```
 
 > 재귀를 용한 코드는 짧습니다.<br>
-위 코드에서 if문 대신 삼항 연산자를 사용하면 간결하게 만들 수 있습니다.
+> 위 코드에서 if문 대신 삼항 연산자를 사용하면 간결하게 만들 수 있습니다.
 
 ```js
 function factorial(n) {
-    return (n == 1) ? 1 : (n * factorial(n-1));
+  return n == 1 ? 1 : n * factorial(n - 1);
 }
 ```
 
@@ -63,21 +64,23 @@ function factorial(n) {
 
 ```js
 function factorial(n) {
-    if (n == 1) {
-        return 1;
-    } else {
-        return n * factorial(n-1);
-    }
+  if (n == 1) {
+    return 1;
+  } else {
+    return n * factorial(n - 1);
+  }
 }
 ```
+
 위 함수를 사용했을 때는 예를 들어 보겠습니다.
 
 factorial(4)를 호출하는 순간, 실행 컨텍스트엔 변수 n = 4가 저장됩니다.<br>
 첫 번째 if문을 보고 조건에 맞지 않으므로 실행흐름은 else 문에서 자기자신을 호출하는 위치인 5번째 줄에 위치하게 됩니다.<br>
 그럼 실행 컨텍스트는 다음과 같이 생성됩니다.<br>
+
 - `Context: { n: 4, 다섯 번째 줄 } call: factorial(4)`
 
-다섯 번째 줄에 n * factorial(n-1)을 계산하려면 새로운 인수가 들어가는 factorial의 서브호출 `facotrial(3)` 이 만들어져야 합니다.
+다섯 번째 줄에 n \* factorial(n-1)을 계산하려면 새로운 인수가 들어가는 factorial의 서브호출 `facotrial(3)` 이 만들어져야 합니다.
 
 #### factorial(3)
 
@@ -97,7 +100,7 @@ factorial(4)를 호출하는 순간, 실행 컨텍스트엔 변수 n = 4가 저�
 이전 컨텍스트에 변수, 일시 중단된 줄에 대한 정보가 저장돼 있기 때문에 서브 호출이 끝났을 때 문제 없이 다시 이어서 실행됩니다.
 
 > 실제로는 줄이라는 단위를 사용하지 않습니다.<br>
-한 줄에 여러 서브 호출이 있을 수 있기에 서브 호출 바로 직후에 시작된다고 봐야합니다.
+> 한 줄에 여러 서브 호출이 있을 수 있기에 서브 호출 바로 직후에 시작된다고 봐야합니다.
 
 나머지 서브 호출 동작도 위와 유사합니다.
 
@@ -110,22 +113,22 @@ factorial(4)를 호출하는 순간, 실행 컨텍스트엔 변수 n = 4가 저�
 ```js
 // 1. for 반복문 사용하기
 function sumTo(n) {
-    let sum = 0;
+  let sum = 0;
 
-    for (let i = 1; i <= n; i++) sum += i;
+  for (let i = 1; i <= n; i++) sum += i;
 
-    return sum;
+  return sum;
 }
 
 // 2. 재귀 사용하기(n > 1일 때 sumTo(n) = n + sumTo(n-1))
 function sumTo(n) {
-    if (n > 1) return n + sumTo(n-1);
-    return 0;
+  if (n > 1) return n + sumTo(n - 1);
+  return 0;
 }
 
 // 3. 등차수열 공식 사용하기
 function sumTo(n) {
-    return n * (n+1) / 2
+  return (n * (n + 1)) / 2;
 }
 ```
 
@@ -142,8 +145,8 @@ function sumTo(n) {
 
 ```js
 function factorial(n) {
-    if (n === 1) return 1;
-    return n * factorial(n - 1);
+  if (n === 1) return 1;
+  return n * factorial(n - 1);
 }
 ```
 
@@ -153,10 +156,10 @@ function factorial(n) {
 let mem = {};
 
 function fib(n) {
-    if (mem[n]) return mem[n];
-    if (n <= 2) return 1;
-    mem[n] = fib(n - 1) + fib(n - 2);
-    return mem[n];
+  if (mem[n]) return mem[n];
+  if (n <= 2) return 1;
+  mem[n] = fib(n - 1) + fib(n - 2);
+  return mem[n];
 }
 ```
 
@@ -167,15 +170,15 @@ function fib(n) {
 ```js
 // 반복문
 function printList(list) {
-    for (; list; list = list.next) {
-        console.log(list.value);
-    }
+  for (; list; list = list.next) {
+    console.log(list.value);
+  }
 }
 
 // 재귀
 function printList(list) {
-    console.log(list.value);
-    if (list.next) printList(list.next);
+  console.log(list.value);
+  if (list.next) printList(list.next);
 }
 ```
 
@@ -184,16 +187,364 @@ function printList(list) {
 ```js
 // 반복문
 function printList(list) {
-    const arr = [];
-    for (; list; list = list.next) {
-        arr.unshift(list.value);
-    }
-    arr.forEach(value => console.log(value));
+  const arr = [];
+  for (; list; list = list.next) {
+    arr.unshift(list.value);
+  }
+  arr.forEach((value) => console.log(value));
 }
 
 // 재귀
 function printList(list) {
-    if (list.next) printList(list.next);
-    console.log(list.value);
+  if (list.next) printList(list.next);
+  console.log(list.value);
 }
 ```
+
+## 6.3 변수의 유효범위와 클로저
+
+### 중첩 함수
+
+함수 내부에 선언한 함수를 중첩 함수라고 합니다.
+
+```js
+function greet(fruit, price) {
+  function getPrice(n) {
+    return `${n} ${fruits}s are ${n * price} dollars`;
+  }
+  console.log(getPrice(5));
+  console.log(getPrice(10));
+}
+```
+
+위처럼 자바스크렙트에선 중첩 함수가 흔히 사용됩니다.
+
+아래 getCounter 함수는 호출될 때마다 1씩 늘어나는 숫자를 반환하는 함수를 반환합니다.
+
+```js
+function getCounter() {
+  let count = 0;
+  return function () {
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+
+alert(counter()); // 1
+alert(counter()); // 2
+alert(counter()); // 3
+```
+
+이때 getCounter()로 여러개의 counter를 만들었을 때 각 함수들은 독립적인지, 함수와 중첩 함수 내 count 변수에 어떤 값이 할당되는지는 알기 위해선 아래 내용을 알아야 합니다.
+
+### 렉시컬 환경
+
+자바스크립트에서는 실행 중인 함수, 코드 블럭, 스크랩트 전체에 렉시컬 환경이라 불리는 **"내부 숨김 연관 객체(internal hidden associated object)"**를 갖습니다.
+
+렉시컬 환경 객체는 아래 두 부분으로 구성됩니다.
+
+- 환경 레코드(Environment Record): 모든 지역 변수를 프로퍼티로 저장하고 있는 객체. this 값과 같은 기타 정보도 여기에 저장됨
+- 외부 렉시컬 환경(Outer Lexical Environment)
+
+아래 4 단계를 통해 렉시컬 환경을 이해할 수 있습니다.
+
+#### 1. 변수
+
+**변수는 특수 내부 객체인 '환경 레코드'의 프로퍼티일 뿐이며, 변수를 가져오거나 변경하는 것은 '환경 레코드의 프로퍼티를 가져오거나 변경'하는 것을 의미합니다.**
+
+아래 코드는 스크립트 전체와 관련된 렉시컬 환경인 전역 렉시컬 환경 하나만 존재합니다.
+
+```js
+// Lexical Environment { name: "James" } outer: null
+let name = "James";
+alert(name);
+```
+
+위 코드에서 null을 가리키는 화살표는 전역 렉시컬 환경이 외부 참조를 갖고 있지 않기 때문에 null을 가리킨다는 것을 의미합니다.
+
+만약 변수를 초기화를 하지 않았을 때 실행 흐름 다음과 같습니다.
+
+```js
+// Lexical Environment { name: <uninitialized> } outer: null
+let name; // { name: undefined }
+```
+
+1. 스크립트가 시작되면 스크립트 내서 선언한 모든 변수가 렉컬 환경에 올라갑니다.
+
+   - 이때 변수의 상태는 툭수 내부 상태(special internal state)인 'uninitialized'가 됩니다. 자바스크립트는 uninitialized 상태인 변수를 인지하긴 하지만 let 키워드를 만나기 전까진 이 변수를 참조할 수 없습니다.
+
+2. let 키워드를 만나면 변수의 값은 undefined가 됩니다. 이 시점 이후부터 해당 변수는 사용 가능해집니다.
+
+#### 2. 함수 선언문
+
+함수도 변수와 마찬가지로 값입니다.
+
+다만 함수 선언문은 일반 변수와 달리 바로 초기화된다는 차이점이 있습니다.
+
+변수는 let을 만나기 전까진 사용할 수 없지만 함수 선언문은 렉시컬 환경이 만들어지는 즉시 사용할 수 있습니다.
+
+아래 스크립트에서 전역 렉시컬 환경의 초기 상태는 다음과 같습니다.
+
+```js
+// Lexical Environment { name: <uninitialized>, say: function } outer: null
+let name = "James";
+
+function greet() {
+  alert(`Hello, I'm ${name}`);
+}
+```
+
+위 상태는 함수 선언문으로 정의한 함수에만 적용되고, 함수 표현식은 해당되지 않습니다.
+
+#### 3. 내부와 외부 렉시컬 환경
+
+함수를 호출하면 호출할 때 넘겨받는 매개변수와 함수내 지역 변수가 저장되는 새로운 렉시컬 환경이 만들어집니다.
+
+```js
+let age = 18;
+
+// Lexical Environment of the call
+// { name: "John" } outer: { greet: function, age: 18 } outer: null
+function greet(name) {
+  alert(`Hello, I'm ${name} and ${age} years old.`);
+}
+
+greet("John");
+```
+
+greet 함수 내에서 변수에 접근할 때 먼저 내부 렉시컬 환경을 검색 범위로 잡습니다.<br>
+이때 내부 렉시컬 환경에서 원하는 변수를 찾지 못하면 검색 범위를 내부 렉시컬 환경이 참조하는 외부 렉시컬 환경으로 확장합니다.<br>
+이 과정은 검색 범위가 전역 렉시컬 환경에 도달할 때까지 반복됩니다.
+
+전역 렉시컬 환경에 도달할 때까지 변수를 찾지못했다면 엄격 모드에선 에러, 비엄격모드에선 새로운 변수가 만들어집니다.<br>
+새로운 변수가 만들어지는 건 하위 호환성을 위해 남아있는 기능입니다.
+
+#### 4. 함수를 반환하는 함수
+
+위에서 봤던 getCounter 함수를 예시로 든다면
+
+```js
+function getCounter() {
+  let count = 0;
+  return function () {
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+```
+
+getCounter()를 호출할 때 새로운 렉시컬 환경 객체가 만들어지고, 여기에 필요한 변수들이 저장됩니다.
+
+greet() 함수와의 차이점은 함수 실행 도중에 `return ++count` 코드가 있는 중첩 함수가 만들어진다는 점입니다.
+
+여기서 중요한 사실이 하나 있는데, 모든 함수는 함수가 생성된 곳의 렉시컬 환경을 기억한다는 점입니다.<br>
+이때 함수는 \[\[Environment]]라는 숨김 프로퍼티를 같는데 이 함수가 만들어진 곳의 렉시컬 환경에 대한 참조가 저장됩니다.
+
+```js
+function getCounter() {
+  let count = 0;
+  return function () {
+    // [[Environment]] -> { count: 0 } outer:
+    // { makeCounter: function, counter } outer: null
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+```
+
+\[\[Environment]]는 함수가 생성될 때 한 번만 값이 세팅되고 영원히 변하지 않습니다.<br>
+또한 위 코드에서 counter()를 호출하면 새로운 렉시컬 환경이 생성되는데<br>
+이 렉시컬 환경은 \[\[Environment]]에 저장된 렉시컬 환경을 외부 렉시컬 환경으로서 참조합니다.
+
+```js
+function getCounter() {
+  let count = 0;
+  // empty outer: { count: 0 } outer:
+  // { makeCounter: function, counter: function } outer: null
+  return function () {
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+```
+
+첫번째로 `function() { return ++count; }` 내에는 지역 / 매개 변수가 없으므로 `<empty>` 인 상황입니다. 이 함수의 \[\[Environment]] 를 외부 렉시컬 환경으로서 참조하므로 먼저 { count: 0 } 를 참조합니다.
+
+따라서 counter()가 호출 된 후 상태는 다음과 같습니다.
+
+```js
+function getCounter() {
+  let count = 0;
+  // empty outer: { count: 1 } outer:
+  // { makeCounter: function, counter: function } outer: null
+  return function () {
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+counter();
+```
+
+> **클로저**<br>
+> 클로저란 외부 변수를 기억하고 이 외부 변수에 접근할 수 있는 함수를 의미합니다.<br>
+> 몇몇 언어에선 클로저를 구현하는 게 불가능하거나 특수한 방식을 사용해야 클로저를 만들 수 있습니다.
+
+렉시컬 환경 객체도 다른 객체와 마찬가지로 도달할 수 없을 때 메모리에서 삭제됩니다.
+
+```js
+function getCounter() {
+  let count = 0;
+  return function () {
+    return ++count;
+  };
+}
+
+let counter = getCounter();
+counter = null;
+```
+
+counter의 외부 렉시컬 환경 겍체 `{ count: 0 }` 를 접근할 방법이 사라져 삭제된다.
+
+#### 최적화 프로세스
+
+앞서 보았듯이, 함수가 살아있는 동안엔 이론상으론 모든 외부 변수는 메모리에 유지된다.<br>
+그러나 자바스크립트 엔진은 변수 사용을 분석하고 외부 변수가 사용되지 않는다고 판단되면 이를 메모리에서 제거한다.
+
+최적화 과정을 통해 변수를 사용할 수 없다는 점은 V8 엔진의 주요 부작용이다.
+
+```js
+function f() {
+  let value = "렉시컬 환경 객체에 저장된 변수";
+
+  return function () {
+    debugger; // 콘솔에 실행 후 alert(value)를 입력하면 선언되지 않았다고 에러가 발생함
+  };
+}
+let g = f();
+g();
+```
+
+### 6.3 과제
+
+1. Does a function pickup latest changes?
+
+![](./images/5.png)
+
+Pete가 보여질 것이다. 전역 렉시컬 환경에 name이 변경된 후 sayHi()를 호출했기 때문이다.
+
+2. Which variables are available?
+
+![](./images/6.png)
+
+Pete가 출력될 것 같다.<br>
+중첩 함수의 바로 바깥에 있는 외부 렉시컬 환경은 그 함수가 선언된 렉시컬 환경을 가리키므로 alert() 함수 내 name은 'Pete'가 저장된 name을 먼저 만나기 때문이다.
+
+3. counter는 독립적일까요?
+
+![](./images/7.png)
+
+0, 1을 띄워줄 것 같다.<br>
+counter와 counter2는 각각의 함수를 반환받으므로 각각의 외부 렉시컬 환경을 가질 것 같기 때문이다.
+
+4. counter 객체
+
+![](./images/8.png)
+
+잘 작동할 것 같다.<br>
+결과는 각각 1, 2, 1 이 출력될 것 같다.
+
+5. if 문 안의 함수
+
+![](./images/9.png)
+
+에러가 날 것 같다.
+
+function sayHi()는 if 문 블럭 안에 선언되어 있으므로 전역 렉시컬 환경에서 호출된 sayHi()가 접근할 수 없을 것 같기 때문이다.
+
+6. 클로저를 이용하여 합 구하기
+
+![](./images/10.png)
+
+```js
+function sum(firstNum) {
+  return function (secondNum) {
+    return firstNum + secondNum;
+  };
+}
+```
+
+7. Is variable visible?
+
+![](./images/11.png)
+
+1이 출력될 것이다.<br>
+func() 함수 내에서 `let x = 2` 는 console.log() 메서드가 실행된 후에 선언됐기 때문에 console.log() 내 x는 외부 렉시컬 환경에 있는 x 를 가리킬 것이기 때문이다.
+
+해답<br>
+에러가 발생한다.
+
+함수가 실행될 때 변수는 uninitialized 상태를 가진다.<br>
+이때 변수는 let을 만나지 전가진 위 상태를 유지하기 때문에 초기화 되지 않은 변수를 사용했으므로 에러가 발생한다.
+
+추가로 변수를 일시적으로 사용할 수 없는 이 영역(코드 블록 시작부터 let 까지)을 '데드 영역'이라고 한다.
+
+8. 함수를 이용해 원하는 값만 걸러내기
+
+![](./images/12.png)
+
+```js
+function inBetween(start, end) {
+  return (value) => start <= value && value <= end;
+}
+
+function inArray(arr) {
+  return (value) => arr.includes(value);
+}
+```
+
+9. 필드를 기준으로 정렬하기
+
+![](./images/13.png)
+
+```js
+function byField(field) {
+  return (a, b) => (a[field] > b[field] ? 1 : -1);
+}
+```
+
+10. 함수를 사용해 군대 만들기
+
+![](./images/14.png)
+
+makeArmy가 호출될 때 새로 만들어진 렉시컬 환경에는 shooters, i 라는 변수가 있다.<br>
+이때 while문 내에 10번 선언된 함수 표현식 shooter는 함수 내에 i가 모두 동일한 외부 렉시컬 환경의 i이므로 10개의 함수 표현식이 10번 더해진 i를 가리키게 된다.
+
+아래처럼 수정하면 제대로 출력된다.
+
+```js
+function makeArmy() {
+  let shooters = [];
+
+  let i = 0;
+  while (i < 10) {
+    let j = i;
+    let shooter = function () {
+      // shooter 함수
+      alert(j); // 몇 번째 shooter인지 출력해줘야 함
+    };
+    shooters.push(shooter);
+    i++;
+  }
+
+  return shooters;
+}
+```
+
+j는 while문 내에서 i값을 복사한 변수로 10개의 함수 표현식이 외부 렉시컬 환경의 i가 아닌 while문 내에 j를 가리키면 각각 다른 값이 출력되게 되므로 제대로 출력된다.
+
+잘못된 부분이 있으면 알려주세요😁
