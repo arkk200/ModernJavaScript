@@ -752,4 +752,45 @@ alert(sum(6)(-1)(-2)(-3)); // 0
 alert(sum(0)(1)(2)(3)(4)(5)); // 15
 ```
 
-잘못된 부분이 있으면 알려주세요😁
+## 6.7 new Function 문법
+
+new Function 문법을 사용하면 인수만으로 함수를 만들 수 있습니다.
+
+```js
+let func = new Function([arg1, arg2, ...argN], functionBody);
+```
+
+함수의 인수는 arg1부터 argN에 정의하고, 함수 본문은 functionBody에 정의합니다.
+
+```js
+let sum = new Function("a", "b", "return a + b");
+// 또는 let sum = new Function("a, b", "return a + b"); 처럼 쉼표로 구분해줘도 된다.
+alert(sum(1, 2)); // 3
+```
+
+함수의 본문만 집어넣을 수도 있다.
+
+```js
+let greet = new Function('alert("Hello")');
+greet(); // Hello
+```
+
+서버에서 받은 코드를 실행시키거나 템플릿을 사용해 함수를 동적으로 컴파일할 때 new Function()을 사용할 수 있다.
+
+### 클로저
+
+new Function을 이용해 함수를 만들면 함수의 \[\[Environment]] 프로퍼티가 함수의 현재 렉시컬 환경이 아닌 전역 렉시컬 환경을 참조하게 됩니다.
+
+```js
+function fooBaz() {
+  let name = "James";
+  let func = new Function("alert(name)");
+  return func;
+}
+
+fooBaz()(); // ReferenceError: name is not defined
+```
+
+덕분에 에러를 예방해준다는 장점이 있습니다.<br>
+new Function()은 구조상으론 매개변수를 사용해 값을 받는게 낫습니다.<br>
+압축기에 의해 코드가 압축될 때 변수명이 변경되면서 생기는 에러를 방지할 수 있기 때문입니다.
