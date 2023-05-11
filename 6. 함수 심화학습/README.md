@@ -794,3 +794,144 @@ fooBaz()(); // ReferenceError: name is not defined
 덕분에 에러를 예방해준다는 장점이 있습니다.<br>
 new Function()은 구조상으론 매개변수를 사용해 값을 받는게 낫습니다.<br>
 압축기에 의해 코드가 압축될 때 변수명이 변경되면서 생기는 에러를 방지할 수 있기 때문입니다.
+
+## 6.8 setTimeout과 setInterval을 이용한 호출 스케줄링
+
+일정 시간이 지난 후 원하는 함수를 예약 실행할 수 있게 하는 것을 '호출 스케줄링(scheduling a call)'이라고 합니다.
+
+호출 스케줄링에는 아래 두가지가 있습니다.
+
+1. setTimeout
+2. setInterval
+
+자바스크립트 명세서엔 명시되어있지 않지만 시중에 나와 있는 모든 브라우저, Node.js를 포함한 환경 대부분이 이와 유사한 메서드와 내부 스케줄러를 지원합니다.
+
+### setTimeout
+
+문법은 다음과 같습니다.
+
+```js
+let timerId = setTimeout(func|code, [delay], [arg1], [arg2], ...);
+```
+
+- `func|code` 실행하고자 하는 함수 혹은 문자열, 대개는 함수가 들어감, 하위 호환성을 위해 문자열도 받을 수 있게 해놨지만 추천하진 않음
+- `delay` 밀리초 단위의 대기 시간
+- `arg1, arg2, ...` 함수에 전달할 인수들
+
+위 문법을 토대로 아래 예시처럼 쓸 수 있다.
+
+```js
+function greet(name, phrase) {
+  alert(name + "님, " + phrase);
+}
+let timerId = setTimeout(greet, 1000, "James", "안녕하세요"); // James님, 안녕하세요
+```
+
+이때 clearTimeout() 함수로 예약된 타이머를 취소할 수 있다.
+
+```js
+function greet(name, phrase) {
+  alert(name + "님, " + phrase);
+}
+let timerId = setTimeout(greet, 1000, "James", "안녕하세요"); // 아무거도 출력 안됨
+clearTimeout(timerId);
+```
+
+### setInterval
+
+setInterval의 인자도 setTimeout과 동일합니다.<br>
+setInterval도 예약을 취소할 때 clearInterval() 함수를 사용하면 됩니다.
+
+추가로 alert 창이 떠 있더라도 타이머는 멈추지 않습니다.
+
+### 중첩 setTimeout
+
+아래처럼 중첩 setTimeout으로 setInterval을 대신할 수 있습니다.
+
+```js
+let timerId = setTimeout(function tick() {
+  alert("Hi!");
+  timerId = setTimeout(tick, 2000);
+}, 2000);
+```
+
+위 코드는 2초마다 `alert("Hi!")` 를 실행합니다.<br>
+위처럼 중첩 setTimeout을 사용하면 딜레이를 원하는 방식으로 제때제때 정할 수 있습니다.
+
+서버에 5번 요청을 보내는데 각각 10초, 20초, 40초, ... 간격으로 요청을 보낸다고 할 때 아래처럼 만들 수 있습니다.
+
+```js
+let delay = 1000;
+
+let timerId = setTimeout(function request() {
+  // ...요청 보내기
+  if (/*서버 응답 실패*/) {
+    delay *= 2;
+  }
+  timerId = setTimeout(request, delay);
+})
+```
+
+추가로 중첩 setTimeout은 setInterval과 다르게 지연 간격을 보장합니다.
+
+```js
+setTimeout(function func() {
+  // 2초 걸리는 작업 (3초마다 동작)
+  setTimeout(func, 3000);
+}, 3000);
+```
+
+위 코드에서 `2초 걸리는 작업` 은 작업이 끝난 후 3초 뒤에 작업이 또다시 시작됩니다.<br>
+그러나 아래의 setInterval 같은 경우엔 작업의 시작을 기준으로 초를 재기 때문에<br>
+`2초 걸리는 작업` 은 작업이 끝난 후 1초 뒤에 작업이 또다시 시작됩니다.
+
+```js
+setInterval(() => {
+  // 2초 걸리는 작업 (1초마다 동작)
+}, 3000);
+```
+
+> 가비지 컬렉션과 setTimeout, setInterval
+>
+> setTimeout이나 setInterval에 함수를 넘기면, 내부에 함수에 대한 참조가 만들어지는데 때문에 함수를 참조하는 것이 없어도 메모리에서 사라지지 않습니다.
+>
+> setInterval의 경우엔 clearInterval가 호출되기 전까진 함수가에 대한 참조가 메모리에 유지돼 사라지지 않습니다.
+>
+> 만약 이 함수가 외부 렉시컬 환경을 참조하고 있다면 외부 렉시컬 환경 전체 또한 함수가 사라질때까지 메모리에 남게 됩니다.
+>
+> 이런 부작용을 방지하고 싶다면 필요없는 스케줄링은 clearTimeout, clearInterval를 호출해서 취소해줘야 합니다.
+
+### 6.8 과제
+
+1. 일초 간격으로 숫자 출력하기
+
+![](./images/17.png)
+
+```js
+// setInterval
+function printNumbers(from, to) {
+  const id = setInterval(() => {
+    console.log(from++);
+    if (from > to) clearInterval(id);
+  }, 1000);
+}
+
+// setTimeout
+function printNumbers(from, to) {
+  setTimeout(function run() {
+    console.log(from++);
+    if (from <= to) {
+      setTimeout(run, 1000);
+    }
+  }, 1000);
+}
+```
+
+2. setTimeout 은 무엇을 보여줄까요?
+
+![](./images/18.png)
+
+100000000 이 출력될 것이다.<br>
+setTimeout(), setInterval() 내에 함수는 모든 실행이 끝난 후 실행되기 때문이다.
+
+잘못된 부분이 있으면 알려주세요😁
