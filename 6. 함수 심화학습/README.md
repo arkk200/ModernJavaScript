@@ -934,4 +934,319 @@ function printNumbers(from, to) {
 100000000 이 출력될 것이다.<br>
 setTimeout(), setInterval() 내에 함수는 모든 실행이 끝난 후 실행되기 때문이다.
 
+## 6.9 call/apply와 데코레이터, 포워딩
+JS의 함수는 인자로도 전달될 수 있고, 객체로도 쓸 수 있을 만큼 유연합니다.<br>
+JS에서 함수 호출 포워딩과 함수를 데코레이팅하는 방법을 알아봅시다.
+
+### 코드 변경 없이 캐싱 기능 추가하기
+
+만약 시간이 오래 걸리는 작업을 수행하는 함수를 여러번 호출한다고 해봅시다.<br>
+같은 결과를 반환하는 함수를 여러번 호출하는 건 비효율적일 것입니다.<br>
+때문에 아래처럼 캐싱해주는 함수를 만들 수 있습니다.
+
+```js
+function slow(n) {
+  // 굉장히 오래 걸리는 작업
+  return x;
+}
+
+function cache(func) {
+  let memo = new Map();
+
+  return function(x) {
+    if (memo.has(x)) {
+      return memo.get(x);
+    }
+
+    let result = func(x);
+
+    memo.set(x, result);
+    return result;
+  }
+}
+
+slow = cache(slow);
+
+slow(1); // memo에 slow(1)이 저장됩니다.
+slow(1); // memo에 저장된 값을 가져옵니다.
+```
+
+위에서 cache처럼 인수로 받은 **함수의 행동을 변경시켜주는 함수**를 데코레이터라고 부릅니다.
+
+이때 cache가 반환하는 function(x)를 래퍼라고 하고,<br>
+이 래퍼는 func(x)의 반환값을 캐싱 로직으로 감싸고 있는 것입니다.
+
+slow 본문을 수정할 수 있지만 독립된 래퍼 함수 cache를 만들면 아래의 이점이 생깁니다.
+
+1. cache를 재사용할 수 있습니다.
+2. 캐싱 로직이 분리되어 있어 slow 본문의 복잡성이 증가하지 않습니다.
+3. 여러개의 데코레이터를 조합할 수도 있습니다.
+
+### 'func.call'를 사용해 컨텍스트 지정하기
+
+위에 데코레이터는 this를 사용하는 객체 메서드에 사용하기엔 적합하지 않습니다.
+
+```js
+let methods = {
+  getThirteen() {
+    return 13;
+  },
+  slow(x) {
+    // 굉장히 오래걸리는 작ㅇㅂ
+    return x * this.getThirteen();
+  }
+}
+
+function cache(func) {
+  let memo = new Map();
+
+  return function(x) {
+    if (memo.has(x)) {
+      return memo.get(x);
+    }
+
+    let result = func(x);
+
+    memo.set(x, result);
+    return result;
+  }
+}
+
+// 데코레이터를 감싸기 전
+methods.slow(1); // 잘 작동함
+
+// 데코레이터 적용
+methods.slow = cache(methods.slow);
+methods.slow(1); // 에러 발생: this.getThirteen is not a function
+```
+
+cache(func) 함수에서 func인자에 methods.slow를 넘길 때 func의 this는 undefined가 되기 때문입니다.
+
+이때 this를 명시적으로 고정해주는 함수의 .call(context, ...args) 내장 메서드를 사용할 수 있습니다.<br>
+context에는 this가 나타낼 객체, ...args에는 함수의 인자가 들어갑니다.
+
+```js
+function greet(gender) {
+  alert(`${this.name} (${gender})`);
+}
+let user1 = { name: "James" };
+let user2 = { name: "Jane" };
+
+greet.call(user1, "M"); // James (M)
+greet.call(user2, "F"); // Jane (F)
+```
+
+따라서 cache 함수를 아래처럼 고칠 수 있습니다.
+
+```js
+let methods = {
+  getThirteen() {
+    return 13;
+  },
+  slow(x) {
+    // 굉장히 오래걸리는 작ㅇㅂ
+    return x * this.getThirteen();
+  }
+}
+
+function cache(func) {
+  let memo = new Map();
+
+  return function(x) {
+    if (memo.has(x)) {
+      return memo.get(x);
+    }
+
+    let result = func.call(this, x); // .call() 로 호출
+
+    memo.set(x, result);
+    return result;
+  }
+}
+
+// 데코레이터를 감싸기 전
+methods.slow(1); // 잘 작동함
+
+// 데코레이터 적용
+methods.slow = cache(methods.slow);
+methods.slow(1); // 잘 작동함
+```
+
+### 여러 인수 전달하기
+cache 데코레이터가 여러 인수를 받는 함수를 캐싱 한다면 아래 방법들을 사용할 수 있습니다.
+
+1. 복수 키를 지원하는 맵 또는 유사 자료 구조 구현하기
+2. 중첩 맵 사용하기 `memo.get(arg1).get(arg2)...`
+3. 두 값을 합치기 `arg1,arg2` / 여러 값을 합치는 해싱 함수를 사용할 수 있습니다.
+
+세 번째 방법을 사용하면 아래처럼 구현할 수 있습니다.
+
+```js
+function slow(first, second) {
+  return first ** second;
+}
+function cache(func, hash) {
+  let memo = new Map();
+
+  return function() {
+    let key = hash(arguments); // hash에 arguments를 넘겨 arg1,arg2,... 형태의 문자열을 받습니ㅏㄷ.
+
+    if (memo.has(key)) return memo.get(key);
+
+    let result = func.call(this, ...arguments); // ...arguments로 인자들을 전달했습니다.
+
+    memo.set(key, result);
+    return result;
+  }
+}
+
+function hash(args) {
+  return args.join(',');
+}
+
+slow = cache(slow, hash);
+
+slow(slow(11, 12)); // 캐시에 키 '11,12'로 값이 저장됨
+slow(slow(11, 12)); // 캐시에 키 '11,12'의 값을 가져옴
+```
+
+### func.apply
+근데 여기서 `func.call(this, ...arguments)` 대신 `func.apply(this, arguments)` 를 사용할 수 있습니다.
+
+func.apply의 문법은 아래와 같습니다.
+```js
+func.apply(context, args)
+```
+func.call() 과 비슷하지만 뒤에 인자의 나열이 아닌 args에 유사 배열 객체 형태로 인자를 받는다는 차이점이 있습니다.<br>
+(유사 배열 객체 대신 배열이 들어올 수 있습니다)
+
+따라서 cache 함수에서 `func.call(this, ...arguments)` 부분을 `func.apply(this, arguments)` 로 수정할 수 있습니다.
+
+대부분 자바스크립트 엔진은 내부에서 apply를 최적화하기 때문에 apply를 사용하는게 좀 더 빠릅니다.
+
+이렇게 **컨텍스트와 함께 인수 전체를 함수에 전달하는 것**을 콜 포워딩(call forwarding) 이라고 합니다.
+
+간단한 형태의 콜 포워딩은 다음과 같습니다.
+
+```js
+let wrapper = function() {
+  return func.apply(this, arguments);
+}
+```
+
+이렇게 콜 포워딩을 하는 wrapper 함수를 호출하면 기존 함수인 func를 호출하는 것과 명확히 구별할 수 없습니다.
+
+### 메서드 빌리기
+위에서 구현한 해싱 함수는 다음처럼 생겼습니다.
+```js
+function hash(args) {
+  return args.join();
+}
+```
+
+arguments 키워드를 사용할 수 있겠지만 arguments는 배열이 아닌 이터러블 객체나 유사 배열 객체이기 때문에<br>
+join을 호출하면 에러가 발생합니다.
+
+```js
+function hash() {
+  return arguments.join(); // arguments.join is not a function
+}
+```
+
+이 문제느 아래처럼 배열과 .call() 메서드를 사용하면 해결할 수 있습니다.
+
+```js
+function hash() {
+  return [].join.call(arguments); // 잘 작동됨
+}
+hash(1, 2, 3); // '1,2,3'
+```
+
+이게 가능한 이유는 .join() 메서드는 배열의 값을 사용하기 위해 this를 사용하기 때문입니다.<br>
+.join() 내부 알고리즘은 다음과 같습니다.
+
+1. 첫번째 매개변수 glue에 인수를 받습니다. 인수가 없다면 glue는 기본값인 ","를 갖습니다.
+2. result를 빈 문자열로 초기화하고 this[0]을 result에 덧붙입니다.
+3. this.length만큼 glue, this[1], glue, this[2], ... , glue, this[n]을 덧붙입니다.
+4. result를 반환합니다.
+
+arguments나 유사 배열 객체는 인데스로 접근할 수 있고 length 프로퍼티가 있으므로 위처럼 join 메서드를 빌려 실행할 수 있습니다.
+
+### 6.9 과제
+
+1. Spy decorator
+
+![](./images/19.png)
+
+```js
+function spy(func) {
+  function record() {
+    record.calls.push(Array.from(arguments))
+    return func.apply(this, arguments);
+  }
+  record.calls = [];
+
+  return record;
+}
+```
+
+2. Delaying decorator
+
+![](./images/20.png)
+
+```js
+function delay(func, ms) {
+  return function () {
+    setTimeout(() => {
+      func.apply(this, arguments);
+    }, ms);
+  }
+}
+```
+
+3. Debounce decorator
+
+![](./images/21.png)
+
+```js
+function debounce(func, ms) {
+  let timerId;
+  return function() {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => func.argument(this, arguments), ms);
+  }
+}
+```
+
+4. Throttle decorator
+
+![](./images/22.png)
+
+```js
+function throttle(func, ms) {
+  let isWait = false, lastArgs, lastThis;
+
+  return function() {
+    if (isWait) {
+      lastThis = this;
+      lastArgs = arguments;
+      return;
+    }
+    isWait = true;
+    func.apply(this, arguments);
+    setTimeout(() => {
+      isWait = false;
+      if (lastArgs) {
+        // 마지막으로 실행되는 함수는 곧바로 함수가 실행되지 않기에 this를 저장해둬야 함
+        func.apply(lastThis, lastArgs);
+        lastThis = null;
+        lastArgs = null;
+      }
+    }, ms);
+  }
+}
+```
+
+
+
 잘못된 부분이 있으면 알려주세요😁
