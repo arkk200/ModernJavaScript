@@ -132,4 +132,96 @@ for (let key in user) {
 
 - Object.isFrozen(obj) 프로퍼티 추가, 삭제, 변경이 불가능하고 모든 프르퍼티가 configurable: false, writable: false이면 true를 반환합니다.
 
+## 7.2 프로퍼티 getter와 setter
+
+객체의 프로퍼티는 데이터 프로퍼티와 접근자 프로퍼티 두가지로 나뉩니다.<br>
+데이터 프로퍼티는 일반적으로 아는 그 프로퍼티이고<br>
+접근자 프로퍼티는 값은 값은 획득하고 설정하는 역할을 담당하는 프로퍼티이다.
+
+### getter와 setter
+접근자 프로퍼티는 획득자, 설정자 메서드로 표현됩니다. 객체 리터럴 안에서 getter와 setter 메서드는 `get` 과 `set` 으로 나타냅니다.
+
+```js
+let obj = {
+    get prop() {
+        // obj.prop 을 실행할 때 실행되는 코드
+    }
+    set prop(value) {
+        // obj.prop = value 을 실행할 때 실행되는 코드
+    }
+}
+```
+
+getter 메서드는 obj.prop을 사용할 때 실행되고, setter 메서드는 objl.prop에 값을 할당할 때 실행됩니다.
+
+성과 이름이 있는 프로퍼티에서 fullName이라는 프로퍼티가 '성 이름'을 갖는 프로퍼티가 되도록 할 때<br>
+접근자 프로퍼티를 이용하면 다음처럼 바로 짤 수 있습니다.
+
+```js
+let user = {
+    name: "James",
+    surname: "Smith",
+    get fullName() {
+        return `${this.name} ${this.surname}`;
+    }
+};
+
+console.log(user.fullName); // James Smith
+```
+
+이때 fullName에는 setter 메서드가 없기 때문에 값을 대입하려고 하면 에러가 납니다.
+
+```js
+user.fullName = "Tom Holland"; // Error: Cannot set property fullName of #<Object> which has only a getter
+```
+
+fullName의 setter 메서드도 추가하자면 아래처럼 할 수 있습니다.
+
+```js
+let user = {
+    name: "James",
+    surname: "Smith",
+    get fullName() {
+        return `${this.name} ${this.surname}`;
+    }
+    set fullName(value) {
+        [this.name, this.surname] = value.split(' ');
+    }
+};
+
+user.fullName = "Tom Holland";
+console.log(user.name); // Tom
+console.log(user.surname); // Holland
+```
+
+### 접근자 프로퍼티 설명자
+접근자 프로퍼티 설명자에는 value와 writable이 없고 get과 set이라는 함수가 있습니다.
+
+```js
+let user = {
+    name: "James",
+    surname: "Smith"
+};
+
+Object.defineProperty(user, 'fullName', {
+    get() {
+        return `${this.name} ${this.surname}`;
+    },
+    set(value) {
+        [this.name, this.surname] = value.split(' ');
+    },
+    enumerable: true
+});
+
+// enumerable이 true라 fullName 프로퍼티가 출력됨
+for (let key in user) console.log(key); // name, surname, fullName
+
+// configurable이 정의가 안되어 false이기에 에러가 남
+Object.defineProperty(user, 'fullName', {
+    enumerable: false
+}); // Error: Cannot redefine property: fullName
+```
+
+프로퍼티를 정의할 때 데이터 프로퍼티에서만 쓰이는 프로퍼티와 접근자 프로퍼티에서만 쓰이는 프로퍼티를 같이 쓰면 에러가 발생합니다.
+
 잘못된 부분이 있으면 알려주세요😁
