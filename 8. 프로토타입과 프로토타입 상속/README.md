@@ -235,3 +235,105 @@ let hamster = {
 }
 ```
 `this.stomach=` 은 객체 자체의 프로퍼티를 가리키기 때문입니다.
+
+## 8.2 함수의 prototype 프로퍼티
+
+객체는 리터럴 뿐만 아니라 생성자 함수로도 만들 수 있다는 것을 알고 있을 겁니다.<br>
+생성함수와 리터럴 방식의 차이점은 생성자 함수의 프로토타입이 객체인 경우, new 연산자로 객체를 생성할 때, 그 객체는 생성자 함수의 프로토타입 정보를 사용해 \[\[Prototype]]을 설정한다는 것입니다.
+
+> 옛날에는 프로토타입에 직접 접근할 수 있는 방법이 없었습니다. 때문에 생성자 함수의 prototype 프로퍼티를 이용하는 방법 밖에 없었습니다. 이것이 아직도 많은 스크립트가 이 방법을 사용하는 이유입니다.
+
+생성자 함수의 객체의 프로토타입을 설정하는 프로퍼티 prototype은 앞에 __proto__과 다른 생성자 함수의 일반적인 프로퍼티입니다.
+
+```js
+let app = {
+    name: "Nice app"
+};
+
+function Admin(salary) {
+    this.salary = salary;
+};
+
+Admin.prototype = app;
+
+let admin = new Admin(2000); // admin.__proto__ = app
+
+console.log(admin.name); // Nice app
+```
+
+`Admin.prototype = app` 은 new Admin으로 생성한 객체의 \[\[Prototype]]을 app으로 설정하라는 의미입니다.
+
+위 예시의 구조를 나타내면 다음과 같습니다.
+```
+Rabbit { prototype: app }
+app { name: "Nice app" }
+admin { salary: 2000, [[Prototype]]: app }
+```
+
+> .prototype은 new로 호출할 때만 사용됩니다.
+>
+> .prototype 프로퍼티가 바뀌면 기존의 \[\[Prototype]]은 그대로 유지됩니다.
+
+### 함수의 디폴트 프로퍼티 prototype과 constructor 프로퍼티
+
+모든 함수는 기본적으로 Foo.prototype = { constructor: Foo } 형태의 prototype 프로퍼티를 갖습니다.<br>
+기본적으로 prototype 프로퍼티는 constructor 프로퍼티 하나만 있는 객체를 가리키는데 이 constructor 프로퍼티는 함수 자기 자신을 가리킵니다.
+
+```js
+function Foo() {
+
+}
+/*
+기본 prototype
+Foo.prototype = { constructor: Foo }
+*/
+```
+
+그렇기 때문에 생성자 함수 자기자신과 생성자 함수.prototype.constructor를 비교해보면 true가 출력됩니다.
+```js
+function Foo() {
+
+}
+
+console.log(Foo === Foo.prototype.constructor); // true
+```
+
+당연히 constructor 프로퍼티가 있는 객체는 생성자를 통해 생성한 객체의 프로토타입으로 상속됩니다.
+
+```js
+function Foo() {}
+
+let foo = new Foo();
+
+console.log(foo.constructor === Foo); // true
+```
+
+덕분에 객체에 기본 프로토타입에 constructor 프로퍼티로 또 다른 객체를 생성할 수 있습니다.
+
+```js
+function Foo() {}
+
+let foo = new Foo();
+
+let foo2 = new foo.constructor();
+```
+
+이 방법으로 어떤 객체가 기본 프로토타입을 상속받고 있는 상태에서<br>
+객체가 어떤 생성자로 생성되었는지 모를 때 유용하게 쓸 수 있습니다.
+
+### 8.2 과제
+
+1. 'prototype' 변경하기
+
+![](./images/5.png)
+
+3번에 delete는 객체에 직접 적용된다. 때문에 프로토타입의 eats가 아니라 rabbit의 eats를 삭제하는 것이므로 프로토타입에 아무 영향을 주지 않아 true가 출력된다.
+
+2. 동일한 생성자 함수로 객체 만들기
+
+![](./images/6.png)
+
+불가능할 수도 있다.<br>
+obj의 프로토타입이 기본 프로토타입이 아니라면 불가능하다.
+
+잘못된 부분이 있으면 알려주세요😁
