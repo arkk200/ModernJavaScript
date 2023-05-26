@@ -16,7 +16,7 @@ object[[Prototype]] -> [prototype object]
 
 \[\[Prototype]]은 내부 / 숨김 프로퍼티지만 다양한 방법으로 값을 설정할 수 있습니다.
 
-다음처럼 **proto**를 사용하면 값을 설정할 수 있습니다.
+다음처럼 \_\_proto\_\_를 사용하면 값을 설정할 수 있습니다.
 
 ```js
 let app = {
@@ -32,10 +32,10 @@ console.log(admin.name); // Anonymous
 admin에서 name을 읽으려 했는데 프로퍼티가 존재하지 않습니다. 이때 JS는 \[\[Prototype]]이 참조하고 있는 객체인 app에서 name을 가져옵니다.  
 이렇게 프로토타입에서 상속받은 프로퍼티를 '상속 프로퍼티(inherited property)'라고 합니다.
 
-> **proto**는 \[\[Prototype]]용 getter, setter입니다. > **proto**는 하위 호환성 때문에 여전히 사용할 순 있지만  
-> 근래엔 **proto**대신 Object.getPrototypeOf()와 Object.setPrototypeOf()를 써서 프로토타입을 획득 / 설정할 수 있습니다. **proto**는 구식 방식이라 만약 실제로 사용할 때는 안 사용하는게 좋습니다.
+> \_\_proto\_\_는 \[\[Prototype]]용 getter, setter입니다. > \_\_proto\_\_는 하위 호환성 때문에 여전히 사용할 순 있지만  
+> 근래엔 \_\_proto\_\_대신 Object.getPrototypeOf()와 Object.setPrototypeOf()를 써서 프로토타입을 획득 / 설정할 수 있습니다. \_\_proto\_\_는 구식 방식이라 만약 실제로 사용할 때는 안 사용하는게 좋습니다.
 >
-> JS 명세서에선 **proto**는 브라우저 환경에서만 지원하도록 규정했는데, 실상은 서버 사이드 포함 모든 호스트 환경에서 **proto**를 지원합니다.
+> JS 명세서에선 \_\_proto\_\_는 브라우저 환경에서만 지원하도록 규정했는데, 실상은 서버 사이드 포함 모든 호스트 환경에서 \_\_proto\_\_를 지원합니다.
 
 다음처럼 객체 내에서 바로 상속받을 수도 있습니다.
 
@@ -58,7 +58,7 @@ let serverAdmin = {
 프로토타입 체이닝엔 아래 두 가지 제약사항이 있습니다.
 
 1. 순환 참조는 허용되지 않습니다.
-2. **proto**의 값은 객체 또는 null만 들어가며 다른 자료형(숫자, 문자, 불린, BigInt, Symbol, undefined)은 무시됩니다.
+2. \_\_proto\_\_의 값은 객체 또는 null만 들어가며 다른 자료형(숫자, 문자, 불린, BigInt, Symbol, undefined)은 무시됩니다.
 
 ### 프로토타입은 읽기 전용이다
 
@@ -250,7 +250,7 @@ let hamster = {
 
 > 옛날에는 프로토타입에 직접 접근할 수 있는 방법이 없었습니다. 때문에 생성자 함수의 prototype 프로퍼티를 이용하는 방법 밖에 없었습니다. 이것이 아직도 많은 스크립트가 이 방법을 사용하는 이유입니다.
 
-생성자 함수의 객체의 프로토타입을 설정하는 프로퍼티 prototype은 앞에 **proto**과 다른 생성자 함수의 일반적인 프로퍼티입니다.
+생성자 함수의 객체의 프로토타입을 설정하는 프로퍼티 prototype은 앞에 \_\_proto\_\_과 다른 생성자 함수의 일반적인 프로퍼티입니다.
 
 ```js
 let app = {
@@ -447,5 +447,83 @@ Function.prototype.defer = function (ms) {
   return func.bind(this);
 };
 ```
+
+## 8.4 프로토타입 메서드와 \_\_proto\_\_가 없는 객체
+
+[8.1 챕터](#81-프로토타입-상속)에서 \_\_proto\_\_ 방식으로 프로토타입 객체를 설정하는 건 구식 방법이라고 했습니다. 아래 세 메서드들은 프로토타입 객체를 다루는 최신 메서드들입니다.
+
+- Object.create(proto, \[descriptors]) - \[\[Prototype]]이 proto를 참조하는 빈 객체를 만듭니다. 이때 프로퍼티 설명자를 추가로 넘길 수 있습니다.
+- Object.getPrototypeOf(obj) - obj의 \[\[Prototype]] 을 반환합니다.
+- Object.setPrototypeOf(obj, proto) - obj의 \[\[Prototype]]이 proto가 되도록 설정합니다.
+
+\_\_proto\_\_ 대신 아래처럼 바꿔 사용하도록 합시다.
+
+```js
+let app = {
+  appName: "Nice App",
+};
+
+// admin = { [[Prototype]]: app }
+let admin = Object.create(app); // admin: { [[Prototype]]: app }
+
+console.log(admin.appName); // Nice app
+
+// admin.__proto__ === app
+console.log(Object.getPrototypeOf(admin) === app); // true
+
+let app2 = {
+  appName: "Good App",
+};
+
+// admin.__proto__ = app2
+Object.setPrototypeOf(admin, app2);
+```
+
+Object.create는 설명자를 아래처럼 설명자를 넘길 수도 있습니다.
+
+```js
+let app = {
+  appName: "Nice app",
+};
+
+let admin = Object.create(app, {
+  name: {
+    value: "James",
+  },
+});
+
+console.log(admin.name); // James
+```
+
+Object.create를 사용하면 프로토타입 객체까지 복사되는 완벽한 복사를 할 수 있습니다.
+
+```js
+let clone = Object.create(
+  Object.getPrototypeOf(obj),
+  Object.getOwnPropertyDescriptors(obj)
+);
+```
+
+### 8.4 과제
+
+1. 사전에 toString 추가하기
+
+![](./images/8.png)
+
+```js
+Object.definineProperty(dictionary, 'toString' {
+  value() {
+    return Object.keys(this).join('');
+  }
+});
+```
+
+2. 호출 간의 차이점
+
+![](./images/9.png)
+
+첫번째를 제외하곤 모두 undefined가 출력될 것 같다.
+
+`function() {}` 에서 this는 메서드를 호출한 객체를 가리키는데 생성자로 만든 객체를 제외하곤 모두 this.name을 가지고 있지 않기 때문이다.
 
 잘못된 부분이 있으면 알려주세요😁
