@@ -1,27 +1,18 @@
-const A = {
-  name: "Ann",
-  // A.print.[[HomeObject]] === A
-  print() {
-    console.log(this.name);
-  },
-};
+class Student {
+  #name = "";
+  #age = 0;
 
-const B = {
-  __proto__: A,
-  name: "Ben",
-  // B.print.[[HomeObject]] === B
-  print() {
-    super.print();
-  },
-};
+  constructor(name, age) {
+    if (age < 0) throw new Error("나이가 음수면 안됩니다.");
+    this.#name = name;
+    this.#age = age;
+  }
 
-const C = {
-  __proto__: B,
-  name: "Charles",
-  // C.print.[[HomeObject]] === C
-  print() {
-    super.print();
-  },
-};
+  #changeAge(age) {
+    this.#age = age;
+  }
+}
 
-C.print(); // Charles
+let student = new Student("John", 19);
+
+student["#changeAge"](29);
